@@ -13,3 +13,7 @@ last_error.txt
 settings.json
 .port
 .env
+
+# Downloads and exports
+Claude outputs/
+*.zip
