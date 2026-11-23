@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clip Maker</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAC5UlEQVR4Xu2bP0gcQRTG90IIidcYyImFiAEJYpVKQopUKlECsUjA8rBVUoWQIoVFimgpSRssLUQUjAnGKoiIHEcqIRJiOCwkF9DGGNIk+PaeZOd27r35s3cr+37Nyux7s+N8383Mzdzmgho3Onv+4t9p4tPWDjTn3t2B2Gap91c/bEDcg/uDcNXl/zz8nju7fylN/2wryKnK5wv9rWhHHe9X5qGsu7MdrpXDY7iOPCzClXsf45GT6m7kWeIAdAAqn7/elQoHvJ17FmnHxJNZVrsW519C3KPii9j4k6MDKEcniAN8OQAV4yplyo+9dUh5Ph3vhFfToWM6bg03rFocoMB2QNIKU6ADKMQBhlzmxvv6bLs6CVd6m9vlSNNxDDAl87MA2wG+8OUkCq7TxAFUT15UuE4TB6gK40rJFlxj236rdM3H9QL3+eIAW6VVih/fQdGb2zetqnTNn/y8b/V8cYCVXP+h7rCY4pqPK8DJscemjwbEAabdpipWWbgCVcwwK3LNx91exPT5KuIApnDnymGPm4LK2+arivsi8w6o2xFCdJ9Viu7xP7EhXOV95VMrQdkVrkGOAdWdcUr0CNXwKM8a3/mFgQVoi84RmR8DSAecfluyVrOVlEvhCVAQdDRshjjAVSXdqN0suLOLDnGAL6WutoXn+F93t+Ha238nUrWvcuT3r/D3Aq6IA1x7UEVVHsFy1QlUfNKIA7g9fO31aCT0dGqNmxoLOoHrIIqZvi+RkKFSnkoBxAGsbgqCoLC5HAmtTIU7Qb7RzRYU6m700FMqQxwAsB3QLHSzQlLIGJBUz1I0W2kd4gBKKVN8rfltZwNTxAGmPaYDv5119fTFhvgq9404gOpR3d4ali8zV1xJUS5hzY33/mQW0FB3MuR6Xp928HxAToZqkGMAou6+qrvBab8vY4AG0gFpV5bbPt35RebXATILaEeHjHA+Brj+RveiIG+OKsAb1Gek9e3xpJC3x2v8Aw0QL0ErbDAGAAAAAElFTkSuQmCC">
+<style>
+/* Layout: left rail + workspace. The Floor page is a factory line: six robot stations on a hazard-striped belt. */
+:root{
+  --bg:#e9ecef; --panel:#f7f8f9; --panel-2:#ffffff; --ink:#1b222c; --muted:#5d6876; --line:#d3d9e0;
+  --steel:#c9d1da; --steel-d:#8e9aa8; --hazard:#f2b705; --hazard-ink:#2a2100;
+  --accent:#2f6bd8; --ok:#1f9d55; --warn:#d97706; --bad:#d64545; --wait:#7b4fd6;
+  --shadow:0 1px 2px rgba(20,30,45,.06),0 4px 14px rgba(20,30,45,.06);
+  --display:"Bahnschrift","DIN Alternate","Barlow Semi Condensed","Arial Narrow",sans-serif;
+  --body:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Mono","Cascadia Code",Consolas,ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161c; --panel:#1a2029; --panel-2:#212935; --ink:#e7ebf0; --muted:#97a3b3; --line:#2c3542;
+  --steel:#3a4554; --steel-d:#6f7d8f; --hazard:#f2b705; --hazard-ink:#2a2100;
+  --accent:#6f9bff; --ok:#3ccf7a; --warn:#f0a43a; --bad:#ff6b6b; --wait:#a888ff;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161c; --panel:#1a2029; --panel-2:#212935; --ink:#e7ebf0; --muted:#97a3b3; --line:#2c3542;
+  --steel:#3a4554; --steel-d:#6f7d8f; --hazard:#f2b705; --hazard-ink:#2a2100;
+  --accent:#6f9bff; --ok:#3ccf7a; --warn:#f0a43a; --bad:#ff6b6b; --wait:#a888ff;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--body);display:flex}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* rail */
+.rail{width:208px;flex:none;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 12px;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 18px}
+.brand svg{width:34px;height:34px}
+.brand b{font:600 19px/1 var(--display);letter-spacing:.02em}
+.brand small{display:block;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.nav{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--muted);font-weight:500}
+.nav:hover{background:var(--panel-2);color:var(--ink)}
+.nav[aria-current="page"]{background:var(--panel-2);color:var(--ink);box-shadow:inset 3px 0 0 var(--hazard)}
+.nav svg{width:18px;height:18px;flex:none}
+.nav .count{margin-left:auto;background:var(--wait);color:#fff;border-radius:999px;font-size:11px;padding:0 7px;font-weight:600}
+.rail .foot{margin-top:auto;color:var(--muted);font-size:12px;padding:8px}
+
+/* main */
+main{flex:1;min-width:0;overflow:auto}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 28px 60px;display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+h1{font:600 26px/1.1 var(--display);margin:0;letter-spacing:.01em;text-wrap:balance}
+h2{font:600 16px/1.2 var(--display);margin:0;letter-spacing:.03em;text-transform:uppercase}
+.sub{color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;background:var(--panel-2);border:1px solid var(--line)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--steel-d)}
+.pill.on i{background:var(--hazard);animation:blink 1s infinite}
+.grow{flex:1}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.panel>.hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.panel>.bd{padding:16px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.stat .n{font:600 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.stat .l{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.stat.attn{border-color:color-mix(in srgb,var(--wait) 55%,var(--line))}
+.stat.attn .n{color:var(--wait)}
+
+/* the line */
+.line{position:relative;padding:18px 16px 14px}
+.stations{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;position:relative;z-index:1}
+.belt{position:absolute;left:16px;right:16px;top:132px;height:14px;border-radius:7px;
+  background:repeating-linear-gradient(-45deg,var(--hazard) 0 12px,var(--hazard-ink) 12px 24px);opacity:.85;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.25),0 2px 0 rgba(0,0,0,.15)}
+.line.running .belt{animation:belt 1s linear infinite}
+.st{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;min-width:0}
+.bay{position:relative;width:100%;height:150px;display:flex;align-items:flex-end;justify-content:center}
+.bot{width:118px;height:118px;overflow:visible;margin-bottom:10px}
+.st .name{font:600 15px/1.1 var(--display);letter-spacing:.04em;text-transform:uppercase}
+.st .role{color:var(--muted);font-size:12px;line-height:1.3;min-height:2.6em}
+.chip{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2px 9px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
+.st.working .chip{background:color-mix(in srgb,var(--hazard) 25%,var(--panel-2));border-color:var(--hazard);color:var(--ink)}
+.st.done .chip{background:color-mix(in srgb,var(--ok) 18%,var(--panel-2));border-color:var(--ok);color:var(--ok)}
+.st.error .chip{background:color-mix(in srgb,var(--bad) 15%,var(--panel-2));border-color:var(--bad);color:var(--bad)}
+.st.waiting .chip{background:color-mix(in srgb,var(--wait) 15%,var(--panel-2));border-color:var(--wait);color:var(--wait)}
+.bar{width:84%;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar b{display:block;height:100%;width:0;background:var(--hazard);transition:width .4s}
+.st.done .bar b{background:var(--ok)}
+.st .detail{font-size:12px;color:var(--muted);min-height:2.8em;line-height:1.3;overflow-wrap:anywhere}
+.st.error .detail{color:var(--bad)}
+
+/* robot parts */
+.bot .metal{fill:var(--steel);stroke:var(--steel-d);stroke-width:2}
+.bot .dark{fill:var(--ink)}
+.bot .visor{fill:#1b2430}
+.bot .eye{fill:#7fe3ff;transform-box:fill-box;transform-origin:center}
+.bot .light{fill:var(--steel-d)}
+.bot .trim{fill:var(--hazard)}
+.bot .tool{fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.bot .fx{opacity:0}
+.bot .zzz{opacity:0;font:700 12px var(--display);fill:var(--muted)}
+.bot .wheel{fill:var(--ink)}
+.st.idle .eye{transform:scaleY(.18)}
+.st.idle .zzz{animation:zzz 3s ease-in-out infinite}
+.st.idle .zzz.b{animation-delay:1.5s}
+.st.working .body{animation:bob .45s ease-in-out infinite alternate}
+.st.working .arm-r{animation:wave .35s ease-in-out infinite alternate}
+.st.working .arm-l{animation:wave2 .5s ease-in-out infinite alternate}
+.st.working .light{fill:var(--hazard);animation:blink .5s infinite}
+.st.working .fx{animation:fx 1s ease-out infinite}
+.st.working .fx.b{animation-delay:.33s}.st.working .fx.c{animation-delay:.66s}
+.st.working .spin{animation:spin 1.2s linear infinite}
+.st.working .eye{animation:look 2.4s ease-in-out infinite}
+.st.done .light{fill:var(--ok)}
+.st.done .body{animation:hop .6s ease-out 1}
+.st.error .light{fill:var(--bad)}
+.st.error .body{animation:shake .5s ease-in-out 2}
+.st.error .eye{fill:var(--bad)}
+.st.waiting .light{fill:var(--wait);animation:blink 1.4s infinite}
+.st.waiting .arm-r{animation:wave 1.2s ease-in-out infinite alternate}
+.arm-r,.arm-l,.spin{transform-box:fill-box}
+.arm-r{transform-origin:10% 10%}.arm-l{transform-origin:90% 10%}.spin{transform-origin:center}
+.badge{opacity:0;transition:opacity .3s}
+.st.done .badge{opacity:1}
+
+@keyframes belt{to{background-position:34px 0}}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+@keyframes wave{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}
+@keyframes wave2{from{transform:rotate(10deg)}to{transform:rotate(-12deg)}}
+@keyframes blink{50%{opacity:.25}}
+@keyframes fx{0%{opacity:0;transform:translate(0,0) scale(.6)}30%{opacity:1}100%{opacity:0;transform:translate(10px,-18px) scale(1.2)}}
+@keyframes zzz{0%{opacity:0;transform:translate(0,0)}30%{opacity:.9}100%{opacity:0;transform:translate(8px,-16px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes hop{30%{transform:translateY(-10px)}60%{transform:translateY(0)}80%{transform:translateY(-3px)}}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes look{0%,40%{transform:translateX(0)}50%,70%{transform:translateX(3px)}80%,100%{transform:translateX(-2px)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* forms */
+.grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+.form{display:grid;gap:12px}
+.field{display:grid;gap:4px}
+.field label{font-weight:600;font-size:13px}
+.field .hint{color:var(--muted);font-size:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>.field{flex:1;min-width:120px}
+input[type=text],input[type=password],input[type=number],textarea,select{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+textarea{resize:vertical;min-height:70px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--panel-2);border-radius:8px;padding:8px 14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn:hover{border-color:var(--steel-d)}
+.btn.go{background:var(--hazard);border-color:color-mix(in srgb,var(--hazard) 70%,#000);color:var(--hazard-ink)}
+.btn.go:hover{filter:brightness(1.05)}
+.btn.blue{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.sm{padding:4px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.inline{display:flex;gap:8px}
+.inline input{flex:1;min-width:0}
+details.more summary{cursor:pointer;color:var(--muted);font-weight:600;font-size:13px}
+details.more[open] summary{margin-bottom:10px}
+
+/* radio (log) */
+.radio{font:12px/1.55 var(--mono);height:360px;overflow:auto;padding:12px 14px;background:var(--panel-2);border-radius:0 0 12px 12px}
+.radio div{white-space:pre-wrap;overflow-wrap:anywhere}
+.radio .t{color:var(--muted);margin-right:8px}
+.radio .w{color:var(--warn)}.radio .e{color:var(--bad)}.radio .g{color:var(--ok)}
+
+/* handoff */
+.handoff .item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.handoff .item:first-child{border-top:0}
+.links{display:flex;gap:6px;flex-wrap:wrap}
+.lk{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:1px 8px;text-decoration:none;color:var(--ink);background:var(--panel-2)}
+.lk b{color:var(--muted);font-weight:600;margin-right:4px}
+.clock{white-space:nowrap;font:600 13px var(--mono);font-variant-numeric:tabular-nums}
+.clock.late{color:var(--bad)}.clock.soon{color:var(--warn)}
+
+/* clips */
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.filters button{all:unset;cursor:pointer;padding:4px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--muted)}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;overflow:hidden}
+.card .vid{position:relative;background:#0c0f14;aspect-ratio:9/16;max-height:420px;width:100%}
+.card video{width:100%;height:100%;object-fit:contain;display:block}
+.card .sel{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.55);color:#fff;border-radius:8px;padding:4px 8px;font-size:12px;font-weight:600;cursor:pointer}
+.card .sel input{width:16px;height:16px;accent-color:var(--hazard)}
+.card .state{position:absolute;top:10px;right:10px}
+.card .bd{display:flex;flex-direction:column;gap:8px;padding:12px}
+.card .ttl{font-weight:700;line-height:1.3}
+.card .meta{color:var(--muted);font-size:12px}
+.card textarea{min-height:84px;font-size:13px}
+.miss{color:var(--warn);font-size:12px;font-weight:600}
+.hookbox{display:grid;gap:4px;padding:10px;border:1px dashed var(--line);border-radius:8px;background:var(--panel-2)}
+.hookbox label,.lbl{font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.hookbox .hint{color:var(--muted);font-size:12px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);display:grid;justify-items:center;gap:10px}
+.empty svg{width:90px;height:90px}
+.dock{position:sticky;bottom:0;margin-top:6px;display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+
+/* table */
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+td .ttl{font-weight:600}
+.toggle{cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.toggle input{width:16px;height:16px;accent-color:var(--ok)}
+
+/* campaigns */
+.camp{display:grid;gap:10px}
+.camp ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.tags{font:600 13px var(--mono);color:var(--accent)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(10,14,20,.55);display:grid;place-items:center;padding:20px;z-index:50}
+.modal{width:min(640px,100%);max-height:86vh;overflow:auto;background:var(--panel);border-radius:14px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal .hd{padding:16px 18px;border-bottom:1px solid var(--line)}
+.modal .bd{padding:16px 18px;display:grid;gap:10px}
+.modal .ft{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+.modal .q{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel-2)}
+.note{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--panel-2));padding:8px 12px;border-radius:6px;font-size:13px}
+.note.info{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel-2))}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:60;box-shadow:var(--shadow)}
+
+@media (max-width:1100px){.stations{grid-template-columns:repeat(3,minmax(0,1fr))}.belt{display:none}.grid2{grid-template-columns:1fr}}
+@media (max-width:760px){body{flex-direction:column}.rail{width:auto;flex-direction:row;flex-wrap:wrap;padding:10px}.brand{padding:4px 8px}.rail .foot{display:none}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stations{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap{padding:16px}}
+.viewtoggle{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--panel-2)}
+.viewtoggle button{all:unset;cursor:pointer;padding:4px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
+.viewtoggle button[aria-pressed="true"]{background:var(--hazard);color:var(--hazard-ink)}
+.viewtoggle button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.factory{padding:0;overflow:hidden;background:#151920}
+.factory canvas{display:block;width:100%;height:clamp(400px,66vh,820px);image-rendering:pixelated}
+.crew{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:10px;background:#12161d;border-top:3px solid #141820}
+.crew .m{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 8px;align-items:center;background:#f8f8f8;color:#1c2230;border:3px solid #141820;box-shadow:inset 0 -3px 0 #c8ccd4;padding:6px 8px;min-width:0}
+.crew .sw{grid-row:span 2;width:14px;height:14px;border:2px solid #141820}
+.crew b{font:700 13px/1.1 var(--display);letter-spacing:.04em}
+.crew span{font-size:11px;color:#4b5565;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crew .m.working{box-shadow:inset 0 -3px 0 #f6c026}.crew .m.done{box-shadow:inset 0 -3px 0 #35c46f}.crew .m.error{box-shadow:inset 0 -3px 0 #ff4f4f}.crew .m.waiting{box-shadow:inset 0 -3px 0 #9f7bff}
+@media (max-width:1100px){.crew{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<nav class="rail" aria-label="Sections">
+  <div class="brand"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="8" y="10" width="24" height="20" rx="6" fill="var(--steel)" stroke="var(--steel-d)" stroke-width="2"/><rect x="12" y="15" width="16" height="8" rx="4" fill="#1b2430"/><circle cx="16.5" cy="19" r="2" fill="#7fe3ff"/><circle cx="23.5" cy="19" r="2" fill="#7fe3ff"/><line x1="20" y1="10" x2="20" y2="5" stroke="var(--steel-d)" stroke-width="2"/><circle cx="20" cy="4" r="2.5" fill="var(--hazard)"/><rect x="13" y="32" width="14" height="4" rx="2" fill="var(--hazard)"/></svg>
+    <div><b>Clip Maker</b><small>Robot clipping crew</small></div></div>
+  <button class="nav" data-page="floor" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V10l6 3V9l6 3V5l6 3v13z"/></svg>Floor</button>
+  <button class="nav" data-page="clips"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>Clips<span class="count" id="nav-ready" hidden></span></button>
+  <button class="nav" data-page="tracker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Tracker<span class="count" id="nav-wait" hidden></span></button>
+  <button class="nav" data-page="campaigns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V4h11l-1 4h6v9h-9l1-4H4"/></svg>Campaigns</button>
+  <button class="nav" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
+  <div class="foot" id="foot">Keep this window open while the robots work.</div>
+</nav>
+
+<main id="main">
+  <!-- FLOOR -->
+  <section class="wrap" id="page-floor">
+    <header class="top">
+      <div><h1>The Floor</h1><div class="sub" id="floor-sub">Six robots, one clip line.</div></div>
+      <span class="grow"></span>
+      <div class="viewtoggle" role="group" aria-label="Robot view"><button type="button" data-view="cards" aria-pressed="true">Cards</button><button type="button" data-view="factory" aria-pressed="false">Factory</button></div>
+      <span class="pill" id="busy-pill"><i></i><span>Crew on break</span></span>
+    </header>
+    <div class="stats">
+      <div class="panel stat"><span class="n" id="s-made">0</span><span class="l">Clips made</span></div>
+      <div class="panel stat"><span class="n" id="s-posted">0</span><span class="l">Posted</span></div>
+      <div class="panel stat attn"><span class="n" id="s-wait">0</span><span class="l">Waiting to submit</span></div>
+      <div class="panel stat"><span class="n" id="s-sub">0</span><span class="l">Submitted</span></div>
+    </div>
+    <div class="panel line" id="line"><div class="belt"></div><div class="stations" id="stations"></div></div>
+    <div class="panel factory" id="factory" hidden><canvas id="factory-canvas" aria-label="Factory floor: the robot crew at work"></canvas>
+      <div class="crew" id="crew"></div></div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="hd"><h2>New batch</h2><span class="grow"></span><span class="sub" id="camp-label"></span></div>
+        <div class="bd form" id="batch-form">
+          <div class="field"><label for="f-req">Campaign requirements link</label>
+            <div class="inline"><input type="text" id="f-req" placeholder="reachclipping.com/CORE"><button class="btn" id="btn-load" type="button">Load rules</button></div>
+            <span class="hint">Fills in the tags, rules and clip length from the campaign's page.</span></div>
+          <div class="field"><label for="f-url">Video or stream to clip</label>
+            <input type="text" id="f-url" placeholder="https://www.twitch.tv/videos/... or a YouTube / Kick link"></div>
+          <div class="row">
+            <div class="field"><label for="f-start">Only clip from</label><input type="text" id="f-start" placeholder="1:30:00"></div>
+            <div class="field"><label for="f-end">to</label><input type="text" id="f-end" placeholder="2:15:00"></div>
+            <div class="field"><label for="f-num">Clips</label><input type="number" id="f-num" min="1" max="30" value="5"></div>
+          </div>
+          <details class="more"><summary>Campaign details</summary>
+            <div class="form">
+              <div class="field"><label for="f-campaign">Campaign name</label><input type="text" id="f-campaign"></div>
+              <div class="field"><label for="f-tags">Must-include caption text</label><input type="text" id="f-tags" placeholder="#CORE"><span class="hint">Added to every caption. Add creator hashtags per clip on the Clips page.</span></div>
+              <div class="row">
+                <div class="field"><label for="f-min">Shortest (sec)</label><input type="number" id="f-min" value="20"></div>
+                <div class="field"><label for="f-max">Longest (sec)</label><input type="number" id="f-max" value="60"></div>
+              </div>
+              <div class="field"><label for="f-rules">Rules for the Scout robot</label><textarea id="f-rules" placeholder="e.g. at least 2 members on screen, English only, no logos"></textarea></div>
+            </div>
+          </details>
+          <div class="row" style="align-items:center"><button class="btn go" id="btn-make" type="button">Start the line</button><span class="sub" id="make-msg"></span></div>
+        </div>
+      </div>
+      <div class="panel handoff" id="handoff-panel">
+        <div class="hd"><h2>To submit</h2><span class="grow"></span><span class="sub">Within 30 minutes of posting</span></div>
+        <div class="bd" id="handoff"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="hd"><h2>Robot radio</h2><span class="grow"></span><span class="sub">What the crew is doing, live</span></div>
+      <div class="radio" id="radio" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- CLIPS -->
+  <section class="wrap" id="page-clips" hidden>
+    <header class="top"><div><h1>Clips</h1><div class="sub">Watch each one, fix its caption, then pick the ones to post.</div></div><span class="grow"></span>
+      <div class="filters" id="clip-filters"><button data-f="ready" aria-pressed="true">Ready</button><button data-f="posted" aria-pressed="false">Posted</button><button data-f="all" aria-pressed="false">All</button></div>
+      <button class="btn" id="btn-open-out" type="button">Open folder</button></header>
+    <div class="cards" id="cards"></div>
+    <div class="dock" id="dock" hidden><b id="dock-n">0 selected</b><span class="sub" id="dock-plats"></span><span class="grow"></span><button class="btn" id="btn-clear" type="button">Clear</button><button class="btn go" id="btn-post" type="button">Post selected</button></div>
+  </section>
+
+  <!-- TRACKER -->
+  <section class="wrap" id="page-tracker" hidden>
+    <header class="top"><div><h1>Tracker</h1><div class="sub">Every posted clip, its links, and whether it's been submitted.</div></div></header>
+    <div class="panel"><div class="tablewrap"><table><thead><tr><th>Clip</th><th>Campaign</th><th>Posted</th><th>Submit by</th><th>Links</th><th>Submitted</th></tr></thead><tbody id="trows"></tbody></table></div></div>
+  </section>
+
+  <!-- CAMPAIGNS -->
+  <section class="wrap" id="page-campaigns" hidden>
+    <header class="top"><div><h1>Campaigns</h1><div class="sub">Rules you've loaded. Read the warnings: a single strike can get you removed.</div></div></header>
+    <div class="cards" id="camps" style="grid-template-columns:repeat(auto-fill,minmax(360px,1fr))"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="wrap" id="page-settings" hidden>
+    <header class="top"><div><h1>Settings</h1><div class="sub">Saved on this computer only.</div></div></header>
+    <div class="grid2">
+      <div class="panel"><div class="hd"><h2>Posting</h2></div>
+        <div class="bd form">
+          <div class="note info">The Post robot sends clips through <b>Upload-Post</b> (upload-post.com). Connect your YouTube, TikTok, Instagram and X accounts to a profile there, then paste the API key and profile name here.</div>
+          <div class="field"><label for="s-upkey">Upload-Post API key</label><input type="password" id="s-upkey" autocomplete="off"><span class="hint" id="s-upkey-h"></span></div>
+          <div class="field"><label for="s-prof">Profile name</label><input type="text" id="s-prof"></div>
+          <div class="field"><label>Post to</label><div class="row" id="s-plats"></div><span class="hint">TikTok needs a paid Upload-Post plan.</span></div>
+        </div></div>
+      <div class="panel"><div class="hd"><h2>Clipping</h2></div>
+        <div class="bd form">
+          <div class="field"><label for="s-ckey">Claude API key (optional)</label><input type="password" id="s-ckey" autocomplete="off"><span class="hint" id="s-ckey-h">Smarter moment picking, captions and rule reading. Without it the Scout uses loudness and talking speed.</span></div>
+          <div class="field"><label for="s-layout">Layout</label><select id="s-layout"><option>Auto</option><option>Follow face</option><option>Blurred background</option></select><span class="hint">Auto follows faces for podcasts and IRL, and uses a blurred background for gameplay.</span></div>
+          <div class="field"><label for="s-model">Caption accuracy</label><select id="s-model"><option value="base">Fast</option><option value="small">Better</option><option value="medium">Best (slow)</option></select></div>
+        </div></div>
+    </div>
+    <div class="row" style="align-items:center"><button class="btn go" id="btn-save" type="button">Save settings</button><span class="sub" id="save-msg"></span></div>
+  </section>
+</main>
+
+<div id="modal-root"></div>
+
+<script>
+/* Factory view: a crisp isometric pixel-art factory (handheld-RPG style) where the robots walk around and work.
+   Shapes are filled pixel-by-pixel on a low-res canvas, then scaled up by a whole number, so edges stay sharp. */
+const Factory = (() => {
+  const W = 14, D = 9, TW = 16, TH = 8;
+  const ROLE = {
+    fetch:   {name:"FETCH",     color:"#4f9dff"},
+    listen:  {name:"EARS",      color:"#f6c026"},
+    scout:   {name:"SCOUT",     color:"#35c46f"},
+    edit:    {name:"SNIP",      color:"#ff8a3d"},
+    post:    {name:"LAUNCH",    color:"#ff5470"},
+    handoff: {name:"CLIPBOARD", color:"#9f7bff"},
+  };
+  const KEYS = Object.keys(ROLE);
+  const PAL = {
+    bg:"#12161d", ink:"#141820",
+    tileA:"#8f9bb0", tileB:"#828ea4", tileHi:"#a9b4c7", tileLo:"#6c778c", grout:"#5b6578",
+    wallFace:"#4a5368", wallFace2:"#3f475a", wallTop:"#6b7690", wallTrim:"#2c3240", baseboard:"#343b4c",
+    win:"#5c93b3", winHi:"#b8ecff", winFrame:"#2c3240",
+    belt:"#2a2f3a", beltHi:"#3a404d", beltLine:"#565d6c", rail:"#f6c026", railLo:"#9b7400",
+    metal:"#d5dde6", metalD:"#9aa6b5", metalDD:"#646f80", visor:"#1a2230", eye:"#7fe8ff", hi:"#ffffff",
+    ok:"#35c46f", bad:"#ff4f4f", wait:"#9f7bff", work:"#f6c026", idle:"#7d8899",
+  };
+  const SX = KEYS.map((_, i) => 0.7 + i * 2.2);
+  const MY = 1.9, MD = 1.2, MW = 1.4, MH = 19;
+  const SPOT_Y = 3.55, BELT_Y0 = 4.15, BELT_Y1 = 4.95, PAD_Y = 0.75;
+  const KIOSK = {x: 11.2, y: 6.9};
+
+  /* Robot sprite, 16 x 21. o outline, w highlight, m metal, d shade, v visor, e eye, c role color, a antenna light */
+  const BODY = [
+    "......oaao......",
+    "......oaao......",
+    ".......oo.......",
+    "..oooooooooooo..",
+    ".owwmmmmmmmmmdo.",
+    ".owvvvvvvvvvvdo.",
+    ".omvveevveevvdo.",
+    ".omvvvvvvvvvvdo.",
+    ".ommmmmmmmmmmdo.",
+    "..oddddddddddo..",
+    "...oooooooooo...",
+    "oo.owmmmmmmdo.oo",
+    "od.omccccccdo.do",
+    "od.omcwccccdo.do",
+    "od.ommmmmmmdo.do",
+    "oo.oddddddddo.oo",
+    "...oooooooooo...",
+  ];
+  const LEGS = {
+    stand: ["....oDo..oDo....", "....oDo..oDo....", "...ooDo..oDoo...", "...oooo..oooo..."],
+    a:     ["....oDo..oDo....", "...ooDo..oDo....", "...oooo..oDoo...", ".........oooo..."],
+    b:     ["....oDo..oDo....", "....oDo..oDoo...", "...ooDo..oooo...", "...oooo........."],
+  };
+
+  let canvas, main, off, ctx, bgLayer, bgCtx, P = 2, k = 1, sp = 1, ox = 0, oy = 0, running = false, last = 0, reduced = false, bgKey = "";
+  let steps = {}, busy = null, ticker = "";
+  const bots = {}, reels = [], parts = [];
+
+  const lightOf = st => ({working:PAL.work, done:PAL.ok, error:PAL.bad, waiting:PAL.wait}[st] || PAL.idle);
+  const iso = (x, y, z = 0) => [(x - y) * TW * k + ox, (x + y) * TH * k + oy - z * k];
+  const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); const c = [n >> 16, n >> 8 & 255, n & 255].map(v => Math.max(0, Math.min(255, Math.round(v * f)))); return `rgb(${c})`; };
+
+  /* ---------- crisp raster helpers */
+  function poly(pts, color){
+    let y0 = Infinity, y1 = -Infinity;
+    for (const p of pts){ y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+    ctx.fillStyle = color;
+    const n = pts.length;
+    for (let y = Math.round(y0); y < Math.round(y1); y++){
+      const sy = y + 0.5; let xl = Infinity, xr = -Infinity;
+      for (let i = 0; i < n; i++){
+        const a = pts[i], b = pts[(i + 1) % n];
+        if ((a[1] <= sy && b[1] > sy) || (b[1] <= sy && a[1] > sy)){
+          const x = a[0] + (sy - a[1]) * (b[0] - a[0]) / (b[1] - a[1]);
+          if (x < xl) xl = x; if (x > xr) xr = x;
+        }
+      }
+      if (xr > xl) ctx.fillRect(Math.round(xl), y, Math.max(1, Math.round(xr) - Math.round(xl)), 1);
+    }
+  }
+  function line(a, b, color){
+    let x0 = Math.round(a[0]), y0 = Math.round(a[1]); const x1 = Math.round(b[0]), y1 = Math.round(b[1]);
+    const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+    let err = dx + dy; ctx.fillStyle = color;
+    for (let guard = 0; guard < 4000; guard++){
+      ctx.fillRect(x0, y0, 1, 1);
+      if (x0 === x1 && y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 >= dy){ err += dy; x0 += sx; }
+      if (e2 <= dx){ err += dx; y0 += sy; }
+    }
+  }
+  function outline(pts, color){ for (let i = 0; i < pts.length; i++) line(pts[i], pts[(i + 1) % pts.length], color); }
+  function rect(x, y, w, h, c){ ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+  function disc(cx, cy, r, c){ ctx.fillStyle = c; cx = Math.round(cx); cy = Math.round(cy); for (let y = -r; y <= r; y++){ const w = Math.floor(Math.sqrt(r * r - y * y + r * .6)); ctx.fillRect(cx - w, cy + y, w * 2 + 1, 1); } }
+  function ell(cx, cy, rx, ry, c){ ctx.fillStyle = c; cx = Math.round(cx); cy = Math.round(cy); for (let y = -ry; y <= ry; y++){ const w = Math.round(rx * Math.sqrt(1 - (y * y) / (ry * ry + .01))); ctx.fillRect(cx - w, cy + y, w * 2 + 1, 1); } }
+
+  function box(x, y, w, d, h, top, left, right, edge = PAL.ink){
+    const L = [iso(x, y + d), iso(x + w, y + d), iso(x + w, y + d, h), iso(x, y + d, h)];
+    const R = [iso(x + w, y), iso(x + w, y + d), iso(x + w, y + d, h), iso(x + w, y, h)];
+    const T = [iso(x, y, h), iso(x + w, y, h), iso(x + w, y + d, h), iso(x, y + d, h)];
+    poly(L, left); poly(R, right); poly(T, top);
+    line(T[0], T[1], shade(top.startsWith("#") ? top : "#ffffff", 1.18)); line(T[3], T[0], shade(top.startsWith("#") ? top : "#ffffff", 1.12));
+    outline([L[0], L[1], R[0], R[3], T[0], T[3]], edge);
+    line(L[1], L[2], edge);
+  }
+
+  function spot(kk){ const i = KEYS.indexOf(kk); return {x: SX[i] + 0.7, y: SPOT_Y}; }
+  function pad(kk){ const i = KEYS.indexOf(kk); return {x: SX[i] + MW / 2, y: PAD_Y}; }
+  function laneX(kk){ const i = KEYS.indexOf(kk); return SX[i] + MW + 0.4; }
+
+  function makeBots(){ KEYS.forEach(kk => { const p = pad(kk); bots[kk] = {k: kk, x: p.x, y: p.y, path: [], mode: "idle", t: 0, work: 0, hop: 0, carry: false, phase: 0, face: 1}; }); }
+
+  function routeTo(b, dest){
+    const lane = laneX(b.k), pts = [];
+    if (Math.abs(b.x - dest.x) > .05 || Math.abs(b.y - dest.y) > .05){
+      if (Math.abs(b.x - lane) > .05 && b.y < BELT_Y0) pts.push({x: lane, y: b.y});
+      if (dest.y > BELT_Y1) pts.push({x: lane, y: SPOT_Y}, {x: W - .35, y: SPOT_Y}, {x: W - .35, y: dest.y});
+      else if (b.y > BELT_Y1) pts.push({x: W - .35, y: b.y}, {x: W - .35, y: SPOT_Y}, {x: lane, y: SPOT_Y});
+      else pts.push({x: lane, y: dest.y});
+      pts.push(dest);
+    }
+    b.path = pts;
+  }
+  function setMode(b, mode){
+    if (b.mode === mode) return;
+    const prev = b.mode; b.mode = mode; b.t = 0;
+    if (mode === "idle") routeTo(b, pad(b.k)); else if (mode === "waiting") routeTo(b, KIOSK); else routeTo(b, spot(b.k));
+    if (mode === "done" && prev !== "idle"){ b.hop = 1; burst(b.x, b.y, PAL.ok, 10); sendReel(b.k); }
+    if (mode === "error") burst(b.x, b.y, PAL.bad, 8);
+  }
+  function sendReel(kk){ const i = KEYS.indexOf(kk); if (i < KEYS.length - 1) reels.push({x: SX[i] + .9, y: (BELT_Y0 + BELT_Y1) / 2, to: SX[i + 1] + .6, c: ROLE[kk].color}); }
+  function burst(x, y, c, n){ for (let i = 0; i < n; i++) parts.push({x, y, z: 18, vx: (Math.random() - .5) * 1.4, vy: (Math.random() - .5) * 1.4, vz: 12 + Math.random() * 14, life: .9, c, kind: "spark"}); }
+
+  function step(dt){
+    const anyWorking = KEYS.some(kk => (steps[kk] || {}).state === "working");
+    for (const kk of KEYS){
+      const b = bots[kk]; setMode(b, (steps[kk] || {}).state || "idle");
+      b.t += dt; b.hop = Math.max(0, b.hop - dt * 1.2);
+      if (b.path.length){
+        const tg = b.path[0], dx = tg.x - b.x, dy = tg.y - b.y, dist = Math.hypot(dx, dy), s = 1.9 * dt;
+        const sdx = (dx - dy); if (Math.abs(sdx) > .01) b.face = sdx > 0 ? 1 : -1;
+        if (dist <= s){ b.x = tg.x; b.y = tg.y; b.path.shift(); } else { b.x += dx / dist * s; b.y += dy / dist * s; }
+        b.phase += dt * 9; continue;
+      }
+      if (b.mode === "working"){
+        b.work += dt;
+        if (b.work > 1.1){
+          b.work = 0; const s = spot(kk), toBelt = !b.carry;
+          b.path = [{x: s.x + (Math.random() - .5) * .5, y: toBelt ? SPOT_Y + .35 : SPOT_Y - .25}];
+          if (!toBelt) b.carry = true; else { b.carry = false; sendReel(kk); }
+        }
+        if (Math.random() < dt * 6) parts.push({x: SX[KEYS.indexOf(kk)] + .7, y: MY + MD, z: MH - 2, vx: Math.random() - .5, vy: .3, vz: 20, life: .5, c: PAL.work, kind: "spark"});
+      }
+      if (b.mode === "idle" && Math.random() < dt * .6) parts.push({x: b.x, y: b.y, z: 26, vx: .25, vy: -.1, vz: 7, life: 2, c: "#c9d3e3", kind: "z"});
+      if (b.mode === "error" && Math.random() < dt * 4) parts.push({x: b.x, y: b.y, z: 24, vx: (Math.random() - .5) * .3, vy: -.2, vz: 10, life: 1.4, c: "#7a8494", kind: "smoke"});
+    }
+    for (const r of reels) r.x += dt * (anyWorking || busy ? 1.4 : .9);
+    for (let i = reels.length - 1; i >= 0; i--) if (reels[i].x >= reels[i].to) reels.splice(i, 1);
+    for (const p of parts){ p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.kind === "spark") p.vz -= 44 * dt; p.life -= dt; }
+    for (let i = parts.length - 1; i >= 0; i--) if (parts[i].life <= 0) parts.splice(i, 1);
+  }
+
+  /* ---------- static background (walls + floor), cached */
+  function drawBackground(){
+    const H = 46;
+    // walls
+    const backR = [iso(0, 0), iso(W, 0), iso(W, 0, H), iso(0, 0, H)];
+    const backL = [iso(0, 0), iso(0, D), iso(0, D, H), iso(0, 0, H)];
+    poly(backR, PAL.wallFace); poly(backL, PAL.wallFace2);
+    // wall panel seams
+    for (let x = 1; x < W; x += 1) line(iso(x, 0, 4), iso(x, 0, H - 4), shade(PAL.wallFace, .88));
+    for (let y = 1; y < D; y += 1) line(iso(0, y, 4), iso(0, y, H - 4), shade(PAL.wallFace2, .86));
+    poly([iso(0, 0), iso(W, 0), iso(W, 0, 4), iso(0, 0, 4)], PAL.baseboard);
+    poly([iso(0, 0), iso(0, D), iso(0, D, 4), iso(0, 0, 4)], PAL.baseboard);
+    poly([iso(0, 0, H), iso(W, 0, H), iso(W, -.3, H), iso(-.3, -.3, H)], PAL.wallTop);
+    poly([iso(0, 0, H), iso(0, D, H), iso(-.3, D, H), iso(-.3, -.3, H)], PAL.wallTop);
+    const pl = pts => { for (let i = 0; i + 1 < pts.length; i++) line(pts[i], pts[i + 1], PAL.ink); };
+    pl([iso(-.3, -.3, H), iso(W, -.3, H), iso(W, 0, H), iso(W, 0, 0)]);
+    pl([iso(-.3, -.3, H), iso(-.3, D, H), iso(0, D, H), iso(0, D, 0)]);
+    // pipes on the left wall
+    for (const y of [1.2, 4.6]){ poly([iso(0, y, 10), iso(0, y + 2.4, 10), iso(0, y + 2.4, 14), iso(0, y, 14)], "#6b7690"); line(iso(0, y, 14), iso(0, y + 2.4, 14), "#8d98b0"); line(iso(0, y, 10), iso(0, y + 2.4, 10), PAL.ink); }
+    // floor tiles with bevel
+    for (let x = 0; x < W; x++) for (let y = 0; y < D; y++){
+      const q = [iso(x, y), iso(x + 1, y), iso(x + 1, y + 1), iso(x, y + 1)];
+      poly(q, (x + y) % 2 ? PAL.tileA : PAL.tileB);
+      line(q[0], q[1], PAL.tileHi); line(q[3], q[0], PAL.tileHi);
+      line(q[1], q[2], PAL.tileLo); line(q[2], q[3], PAL.tileLo);
+      // a few rivets for texture
+      const c = iso(x + .5, y + .5); if ((x * 7 + y * 3) % 5 === 0) rect(c[0], c[1], 1, 1, PAL.grout);
+    }
+    // hazard walkway in front of the belt
+    for (let x = 0; x < W; x += .5) poly([iso(x, BELT_Y1 + .08), iso(x + .25, BELT_Y1 + .08), iso(x + .25, BELT_Y1 + .26), iso(x, BELT_Y1 + .26)], (Math.round(x * 2) % 2) ? PAL.ink : PAL.rail);
+    // kiosk mat
+    const m = [iso(KIOSK.x - .7, KIOSK.y - .5), iso(KIOSK.x + .7, KIOSK.y - .5), iso(KIOSK.x + .7, KIOSK.y + .45), iso(KIOSK.x - .7, KIOSK.y + .45)];
+    poly(m, "#5b4a9a"); outline(m, "#3a2f66");
+    // belt body (static part)
+    box(.2, BELT_Y0, W - .4, BELT_Y1 - BELT_Y0, 5, PAL.belt, "#3a404d", "#2e333e");
+  }
+
+  /* ---------- dynamic pieces */
+  function drawWindows(t){
+    for (let x = 1; x < W - 1; x += 2.2){
+      const q = [iso(x, 0, 28), iso(x + 1.3, 0, 28), iso(x + 1.3, 0, 40), iso(x, 0, 40)];
+      poly(q, Math.sin(t * .5 + x) > .3 ? PAL.winHi : PAL.win);
+      line(iso(x + .2, 0, 38), iso(x + .5, 0, 31), "rgba(255,255,255,.55)");
+      line(iso(x + .65, 0, 28), iso(x + .65, 0, 40), PAL.winFrame);
+      outline(q, PAL.winFrame);
+    }
+  }
+  function drawBelt(t, on){
+    const off = on ? (t * 1.4) % .5 : 0;
+    for (let x = .25 + off; x < W - .25; x += .5) line(iso(x, BELT_Y0 + .08, 5), iso(x, BELT_Y1 - .08, 5), PAL.beltLine);
+    line(iso(.2, BELT_Y0, 5), iso(W - .2, BELT_Y0, 5), PAL.rail); line(iso(.2, BELT_Y0 + .06, 5), iso(W - .2, BELT_Y0 + .06, 5), PAL.railLo);
+    line(iso(.2, BELT_Y1, 5), iso(W - .2, BELT_Y1, 5), PAL.rail);
+    // rollers on the front edge
+    for (let x = .6; x < W - .2; x += 1.1){ const [a, b] = iso(x, BELT_Y1, 2.5); disc(a, b, Math.max(1, Math.round(1.3 * k)), "#1c2028"); }
+  }
+  function drawPads(){
+    KEYS.forEach(kk => {
+      const p = pad(kk), c = ROLE[kk].color, lit = bots[kk] && bots[kk].mode === "idle";
+      const q = [iso(p.x - .42, p.y - .36), iso(p.x + .42, p.y - .36), iso(p.x + .42, p.y + .36), iso(p.x - .42, p.y + .36)];
+      poly(q, lit ? c : shade(c, .5)); outline(q, PAL.ink);
+      const q2 = [iso(p.x - .2, p.y - .16), iso(p.x + .2, p.y - .16), iso(p.x + .2, p.y + .16), iso(p.x - .2, p.y + .16)];
+      poly(q2, shade(c, lit ? .75 : .32));
+    });
+  }
+  function drawMachine(kk, t){
+    const i = KEYS.indexOf(kk), x = SX[i], c = ROLE[kk].color, st = (steps[kk] || {}).state || "idle";
+    box(x, MY, MW, MD, MH, shade(c, 1.05), shade(c, .7), shade(c, .5));
+    // vents on the side
+    for (let v = 0; v < 3; v++) line(iso(x + MW, MY + .25 + v * .25, 4), iso(x + MW, MY + .25 + v * .25, 9), shade(c, .35));
+    // front screen
+    const scr = st === "working" ? (Math.sin(t * 12) > 0 ? "#eafcff" : PAL.eye) : st === "done" ? PAL.ok : st === "error" ? PAL.bad : st === "waiting" ? PAL.wait : "#203040";
+    const q = [iso(x + .22, MY + MD, 8), iso(x + 1.18, MY + MD, 8), iso(x + 1.18, MY + MD, 15), iso(x + .22, MY + MD, 15)];
+    poly(q, scr); outline(q, PAL.ink);
+    if (st === "working") line(iso(x + .3, MY + MD, 12), iso(x + .3 + ((t * .8) % .8), MY + MD, 12), "#ffffff");
+    // progress bar on the side
+    const pct = st === "done" ? 100 : ((steps[kk] || {}).pct ?? (st === "working" ? 10 : 0));
+    const bq = [iso(x + MW, MY + .15, 2), iso(x + MW, MY + MD - .15, 2), iso(x + MW, MY + MD - .15, 3.6), iso(x + MW, MY + .15, 3.6)];
+    poly(bq, "#0e1218");
+    if (pct > 0){ const e = MY + .15 + (MD - .3) * pct / 100; poly([iso(x + MW, MY + .15, 2), iso(x + MW, e, 2), iso(x + MW, e, 3.6), iso(x + MW, MY + .15, 3.6)], st === "done" ? PAL.ok : PAL.work); }
+    // roof props
+    const top = (dx, dy, z) => iso(x + dx, MY + dy, MH + z);
+    const u = Math.max(1, Math.round(k));
+    if (kk === "fetch"){ const [a, b] = top(.7, .6, 1); rect(a - u, b - 7 * u, 2 * u, 7 * u, PAL.metalDD); ell(a, b - 8 * u, 5 * u, 2 * u, PAL.metal); ell(a, b - 8 * u, 3 * u, 1 * u, PAL.metalD); rect(a - u, b - 11 * u, 2 * u, 3 * u, PAL.ink); }
+    if (kk === "listen"){ const [a, b] = top(.7, .6, 4); disc(a, b, 5 * u, PAL.ink); disc(a, b, 4 * u, "#2a2f3a"); disc(a, b, 2 * u, PAL.rail); if (st === "working"){ const r = 6 + Math.floor((t * 6) % 4); line([a + r * u, b - 3 * u], [a + r * u, b + 3 * u], PAL.hi); } }
+    if (kk === "scout"){ const bob = st === "working" ? Math.round(Math.sin(t * 3) * 2) : 0; const [a, b] = top(.7, .6, 6 + bob); disc(a, b, 5 * u, PAL.ink); disc(a, b, 4 * u, "#bdf3ff"); rect(a - 2 * u, b - 2 * u, u, u, PAL.hi); rect(a + 3 * u, b + 3 * u, 2 * u, 4 * u, PAL.ink); }
+    if (kk === "edit"){ const o = st === "working" ? Math.round(Math.sin(t * 14) * 2) : 0; const [a, b] = top(.7, .6, 2); rect(a - 4 * u - o * u, b - 9 * u, 2 * u, 9 * u, PAL.ink); rect(a - 4 * u - o * u + u, b - 8 * u, u, 7 * u, "#eef2f6"); rect(a + 2 * u + o * u, b - 9 * u, 2 * u, 9 * u, PAL.ink); rect(a + 2 * u + o * u, b - 8 * u, u, 7 * u, "#eef2f6"); disc(a, b, 2 * u, PAL.bad); }
+    if (kk === "post"){ const lift = st === "working" ? Math.floor((t * 16) % 12) : 0; const [a, b] = top(.7, .6, 2 + lift); rect(a - 3 * u, b - 10 * u, 6 * u, 10 * u, PAL.ink); rect(a - 2 * u, b - 9 * u, 4 * u, 8 * u, "#f4f6f9"); rect(a - 2 * u, b - 11 * u, 4 * u, 2 * u, PAL.bad); rect(a - 4 * u, b - 3 * u, 8 * u, 3 * u, PAL.bad); if (st === "working"){ rect(a - u, b, 2 * u, 3 * u, PAL.rail); rect(a - u, b + 3 * u, 2 * u, 2 * u, "#ff9b2f"); } }
+    if (kk === "handoff"){ const [a, b] = top(.7, .6, 2); rect(a - 5 * u, b - 12 * u, 10 * u, 13 * u, PAL.ink); rect(a - 4 * u, b - 11 * u, 8 * u, 11 * u, "#f4f6f9"); rect(a - 2 * u, b - 13 * u, 4 * u, 3 * u, PAL.metalDD); rect(a - 3 * u, b - 8 * u, 6 * u, u, "#9aa6b5"); rect(a - 3 * u, b - 5 * u, 6 * u, u, "#9aa6b5"); rect(a - 3 * u, b - 2 * u, 4 * u, u, "#9aa6b5"); }
+  }
+  function drawKiosk(t){
+    box(KIOSK.x - .36, KIOSK.y - 1.05, .72, .46, 20, "#7a66d0", "#55459c", "#41357a");
+    const w = (steps.handoff || {}).state === "waiting";
+    const q = [iso(KIOSK.x - .26, KIOSK.y - .59, 10), iso(KIOSK.x + .26, KIOSK.y - .59, 10), iso(KIOSK.x + .26, KIOSK.y - .59, 17), iso(KIOSK.x - .26, KIOSK.y - .59, 17)];
+    poly(q, w && Math.sin(t * 6) > 0 ? "#efe6ff" : "#a996ff"); outline(q, PAL.ink);
+  }
+  function drawReel(r){
+    const [a, b] = iso(r.x, r.y, 8); const u = Math.max(1, Math.round(k));
+    disc(a, b, 4 * u, PAL.ink); disc(a, b, 3 * u, r.c); disc(a, b, u, PAL.ink);
+  }
+
+  function drawSprite(b, t){
+    const st = b.mode, c = ROLE[b.k].color, cd = shade(c, .65), moving = b.path.length > 0;
+    let [x, y] = iso(b.x, b.y);
+    const bob = moving ? (Math.sin(b.phase) > 0 ? 1 : 0) : st === "working" ? (Math.sin(t * 9) > 0 ? 1 : 0) : 0;
+    const hop = Math.round(Math.sin(b.hop * Math.PI) * 9);
+    const shake = st === "error" ? (Math.sin(t * 40) > 0 ? 1 : -1) : 0;
+    const H = BODY.length + 4;
+    x = Math.round(x - 8 * sp + shake * sp); y = Math.round(y - H * sp - (bob + hop) * sp);
+    ell(Math.round(x + 8 * sp), Math.round(y + (H + bob + hop) * sp), 6 * sp, 2 * sp, "rgba(0,0,0,.35)");
+    const armL = st === "working" && !moving ? (Math.sin(t * 10) > 0 ? 2 : 0) : 0;
+    const armR = st === "working" && !moving ? (Math.sin(t * 10) > 0 ? 0 : 2) : st === "waiting" ? (Math.sin(t * 6) > 0 ? 3 : 1) : 0;
+    const colors = {o: PAL.ink, w: PAL.hi, m: PAL.metal, d: PAL.metalD, D: PAL.metalDD, v: PAL.visor, c, C: cd,
+      e: st === "idle" ? PAL.visor : st === "error" ? PAL.bad : PAL.eye,
+      a: (st === "working" || st === "waiting") && Math.sin(t * 8) < -.3 ? PAL.idle : lightOf(st)};
+    const flip = b.face < 0;
+    const rows = BODY.concat(LEGS[moving ? (Math.sin(b.phase) > 0 ? "a" : "b") : "stand"]);
+    for (let r = 0; r < rows.length; r++){
+      const row = rows[r];
+      for (let col = 0; col < 16; col++){
+        const ch = row[flip ? 15 - col : col]; if (ch === ".") continue;
+        let dy = 0;
+        if (r >= 11 && r <= 15){ if (col <= 1) dy = -(flip ? armR : armL); if (col >= 14) dy = -(flip ? armL : armR); }
+        ctx.fillStyle = colors[ch] || PAL.metal;
+        ctx.fillRect(x + col * sp, y + (r + dy) * sp, sp, sp);
+      }
+    }
+    if (st === "idle"){ rect(x + 4 * sp, y + 7 * sp, 2 * sp, sp, PAL.eye); rect(x + 9 * sp, y + 7 * sp, 2 * sp, sp, PAL.eye); }
+    // role accessories
+    if (b.k === "listen"){ rect(x, y + 4 * sp, sp, 4 * sp, PAL.ink); rect(x + 15 * sp, y + 4 * sp, sp, 4 * sp, PAL.ink); rect(x - sp, y + 5 * sp, sp * 2, 3 * sp, PAL.rail); rect(x + 15 * sp, y + 5 * sp, sp * 2, 3 * sp, PAL.rail); rect(x + 2 * sp, y + 2 * sp, 12 * sp, sp, PAL.ink); }
+    if (b.k === "scout"){ const gx = flip ? x - 4 * sp : x + 16 * sp; disc(gx + 2 * sp, y + 11 * sp, 2 * sp, PAL.ink); rect(gx + sp, y + 10 * sp, 2 * sp, 2 * sp, "#bdf3ff"); }
+    if (b.k === "handoff"){ const gx = flip ? x - 5 * sp : x + 16 * sp; rect(gx, y + 10 * sp, 5 * sp, 6 * sp, PAL.ink); rect(gx + sp, y + 11 * sp, 3 * sp, 4 * sp, "#f4f6f9"); }
+    if (b.k === "edit"){ const gx = flip ? x - 3 * sp : x + 16 * sp; rect(gx, y + 9 * sp, sp, 4 * sp, "#eef2f6"); rect(gx + 2 * sp, y + 9 * sp, sp, 4 * sp, "#eef2f6"); }
+    if (b.carry){ disc(x + 8 * sp, y + 11 * sp, 3 * sp, PAL.ink); disc(x + 8 * sp, y + 11 * sp, 2 * sp, c); }
+    // speech bubbles
+    const bx = x + 8 * sp, by = y - 4 * sp;
+    if (st === "done" && !moving) bubble(bx, by, sp, (g) => { g(2, 3, PAL.ok); g(3, 4, PAL.ok); g(4, 3, PAL.ok); g(5, 2, PAL.ok); g(6, 1, PAL.ok); }, 9, 7);
+    if (st === "error") bubble(bx, by, sp, (g) => { for (let i = 1; i <= 4; i++) g(4, i, PAL.bad); g(4, 6, PAL.bad); }, 9, 8);
+    if (st === "waiting" && !moving) bubble(bx, by, sp, (g) => { for (let i = 1; i < 12; i++) g(i, 2, PAL.wait); for (let i = 1; i < 8; i++) g(i, 4, PAL.wait); }, 13, 7);
+  }
+  function bubble(cx, bottom, s, drawInner, w, h){
+    const x = Math.round(cx - (w / 2) * s), y = Math.round(bottom - h * s);
+    rect(x - s, y - s, (w + 2) * s, (h + 2) * s, PAL.ink);
+    rect(x, y, w * s, h * s, "#ffffff");
+    rect(cx - s, y + h * s, 2 * s, s, PAL.ink); rect(cx - s, y + h * s - s, 2 * s, s, "#ffffff");
+    drawInner((gx, gy, c) => rect(x + gx * s, y + gy * s, s, s, c));
+  }
+  function drawParticle(p){
+    const [a, b] = iso(p.x, p.y, p.z); const u = Math.max(1, Math.round(k));
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+    if (p.kind === "z"){ rect(a, b, 3 * u, u, p.c); rect(a + u, b + u, u, u, p.c); rect(a, b + 2 * u, 3 * u, u, p.c); }
+    else if (p.kind === "smoke") rect(a - 2 * u, b - 2 * u, 4 * u, 4 * u, p.c);
+    else rect(a, b, u, u, p.c);
+    ctx.globalAlpha = 1;
+  }
+
+  /* ---------- full-resolution text in handheld-RPG dialogue boxes */
+  function textBox(g, x, y, text, size, dot){
+    g.font = `700 ${size}px ${getComputedStyle(document.documentElement).getPropertyValue("--display") || "sans-serif"}`;
+    const padX = Math.round(size * .55), w = Math.round(g.measureText(text).width + padX * 2 + (dot ? size * .8 : 0)), h = Math.round(size * 1.55);
+    x = Math.round(x - w / 2); y = Math.round(y - h / 2);
+    const b = Math.max(2, Math.round(size / 6));
+    g.fillStyle = "#141820"; g.fillRect(x - b, y - b, w + 2 * b, h + 2 * b);
+    g.fillStyle = "#f8f8f8"; g.fillRect(x, y, w, h);
+    g.fillStyle = "#c8ccd4"; g.fillRect(x, y + h - b, w, b);
+    let tx = x + padX;
+    if (dot){ const r = Math.round(size * .28); g.fillStyle = "#141820"; g.fillRect(tx - 1, y + h / 2 - r - 1, r * 2 + 2, r * 2 + 2); g.fillStyle = dot; g.fillRect(tx, y + h / 2 - r, r * 2, r * 2); tx += size * .8; }
+    g.fillStyle = "#1c2230"; g.textBaseline = "middle"; g.textAlign = "left"; g.fillText(text, tx, y + h / 2 + 1);
+  }
+  function drawLabels(){
+    const g = main, scale = P;
+    const size = Math.max(11, Math.round(5.2 * k * P));
+    const [kx, ky] = iso(KIOSK.x + .25, KIOSK.y + .75, 0);
+    textBox(g, kx * scale, ky * scale, "SUBMIT", Math.round(size * .85));
+    const [wx, wy] = iso(W * .6, 0, 54);
+    g.font = `800 ${Math.round(size * 1.15)}px ${getComputedStyle(document.documentElement).getPropertyValue("--display") || "sans-serif"}`;
+    g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#141820"; g.fillText("CLIP FACTORY", wx * scale + 2, wy * scale + 2); g.fillStyle = "#f6c026"; g.fillText("CLIP FACTORY", wx * scale, wy * scale);
+    if (ticker){
+      const fs = Math.max(13, Math.round(size * 1.05)), msg = ticker.length > 120 ? ticker.slice(0, 117) + "..." : ticker;
+      g.font = `600 ${fs}px ${getComputedStyle(document.documentElement).getPropertyValue("--mono") || "monospace"}`;
+      const pad = Math.round(fs * .8), h = Math.round(fs * 2.4), w = Math.min(canvas.width - pad * 2, g.measureText(msg).width + pad * 2.4), x = pad, y = canvas.height - h - pad, b = Math.max(3, Math.round(fs / 5));
+      g.fillStyle = "#141820"; g.fillRect(x - b, y - b, w + 2 * b, h + 2 * b);
+      g.fillStyle = "#f8f8f8"; g.fillRect(x, y, w, h);
+      g.fillStyle = "#4f9dff"; g.fillRect(x + b, y + b, w - 2 * b, Math.max(1, Math.round(b / 2)));
+      g.fillStyle = "#1c2230"; g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(msg, x + pad * 1.1, y + h / 2 + 1);
+    }
+  }
+
+  function layout(){
+    const cw = canvas.clientWidth, ch = canvas.clientHeight, dpr = window.devicePixelRatio || 1;
+    const W2 = Math.round(cw * dpr), H2 = Math.round(ch * dpr);
+    if (canvas.width !== W2 || canvas.height !== H2){ canvas.width = W2; canvas.height = H2; }
+    P = Math.max(2, Math.round(2 * dpr));                 // each art pixel = about 2 screen pixels
+    const aw = Math.ceil(canvas.width / P), ah = Math.ceil(canvas.height / P);
+    if (off.width !== aw || off.height !== ah){ off.width = aw; off.height = ah; bgLayer.width = aw; bgLayer.height = ah; }
+    const artW = (W + D) * TW + 4, artH = (W + D) * TH + 58;
+    k = Math.min(aw / artW, ah / artH);
+    sp = Math.max(1, Math.round(k * 1.35));
+    ox = Math.round((aw - artW * k) / 2 + D * TW * k + 2 * k); oy = Math.round((ah - artH * k) / 2 + 56 * k);
+    const key = `${aw}x${ah}`;
+    if (key !== bgKey){ bgKey = key; ctx = bgCtx; ctx.clearRect(0, 0, aw, ah); ctx.fillStyle = PAL.bg; ctx.fillRect(0, 0, aw, ah); drawBackground(); }
+    return [aw, ah];
+  }
+
+  function render(t){
+    const [aw, ah] = layout();
+    ctx = off.getContext("2d");
+    ctx.drawImage(bgLayer, 0, 0);
+    const on = KEYS.some(kk => (steps[kk] || {}).state === "working");
+    drawWindows(t); drawBelt(t, on); drawPads();
+    const items = [];
+    KEYS.forEach(kk => items.push({d: SX[KEYS.indexOf(kk)] + MY + MD, f: () => drawMachine(kk, t)}));
+    items.push({d: KIOSK.x + KIOSK.y - .6, f: () => drawKiosk(t)});
+    reels.forEach(r => items.push({d: r.x + r.y + .01, f: () => drawReel(r)}));
+    KEYS.forEach(kk => items.push({d: bots[kk].x + bots[kk].y + .02, f: () => drawSprite(bots[kk], t)}));
+    items.sort((a, b) => a.d - b.d).forEach(i => i.f());
+    parts.forEach(drawParticle);
+    main.imageSmoothingEnabled = false;
+    main.setTransform(1, 0, 0, 1, 0, 0);
+    main.drawImage(off, 0, 0, aw * P, ah * P);
+    drawLabels();
+  }
+
+  function frame(now){
+    if (!running) return;
+    const t = now / 1000, dt = Math.min(.05, last ? t - last : 0); last = t;
+    step(reduced ? 1 : dt);
+    if (reduced) KEYS.forEach(kk => { const b = bots[kk]; while (b.path.length){ const p = b.path.shift(); b.x = p.x; b.y = p.y; } });
+    render(reduced ? 0 : t);
+    if (reduced){ running = false; return; }
+    requestAnimationFrame(frame);
+  }
+
+  return {
+    init(el){
+      canvas = el; main = canvas.getContext("2d");
+      off = document.createElement("canvas"); bgLayer = document.createElement("canvas"); bgCtx = bgLayer.getContext("2d");
+      reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      makeBots();
+    },
+    start(){ if (running || !canvas) return; running = true; last = 0; requestAnimationFrame(frame); },
+    stop(){ running = false; },
+    set(s, b){ steps = s || {}; busy = b; if (reduced && canvas && canvas.offsetParent){ running = true; requestAnimationFrame(frame); } },
+    say(m){ ticker = m; },
+  };
+})();
+
+</script>
+<script>
+const TOKEN = "__TOKEN__";
+const PLAT = {youtube:"YouTube", tiktok:"TikTok", instagram:"Instagram", x:"X"};
+const STATIONS = [
+  {k:"fetch",  name:"Fetch",   role:"Downloads the video"},
+  {k:"listen", name:"Ears",    role:"Writes the captions"},
+  {k:"scout",  name:"Scout",   role:"Finds the best moments"},
+  {k:"edit",   name:"Snip",    role:"Cuts 9:16 clips with captions"},
+  {k:"post",   name:"Launch",  role:"Posts to your 4 apps"},
+  {k:"handoff",name:"Clipboard",role:"Holds links to submit"},
+];
+const LABEL = {idle:"Napping", working:"Working", done:"Done", error:"Stuck", waiting:"Waiting on you"};
+let DATA = {clips:[], stats:{}, campaigns:[], settings:{}}, seq = 0, version = -1, filter = "ready", selected = new Set(), lastBusy = null;
+
+/* ---------- api */
+async function api(path, body){
+  const r = await fetch(path, {method: body ? "POST" : "GET", headers:{"X-Token":TOKEN, "Content-Type":"application/json"}, body: body ? JSON.stringify(body) : undefined});
+  const j = await r.json().catch(()=>({error:"Bad response"}));
+  if(!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(msg){ const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.append(t); setTimeout(()=>t.remove(), 2600); }
+
+/* ---------- robots (original designs) */
+function bot(k){
+  const base = (head, armL, armR, extra="", chest="") => `
+  <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+    <ellipse cx="60" cy="114" rx="30" ry="4" fill="var(--ink)" opacity=".12"/>
+    <g class="body">
+      <text class="zzz" x="84" y="22">z</text><text class="zzz b" x="92" y="14">z</text>
+      <line x1="60" y1="20" x2="60" y2="10" stroke="var(--steel-d)" stroke-width="3"/><circle class="light" cx="60" cy="8" r="5"/>
+      ${head}
+      <g class="arm-l">${armL}</g>
+      <rect class="metal" x="38" y="60" width="44" height="34" rx="9"/>
+      <rect class="trim" x="38" y="86" width="44" height="6" rx="3"/>
+      ${chest}
+      <g class="arm-r">${armR}</g>
+      <rect class="dark" x="44" y="94" width="32" height="8" rx="4"/>
+      <circle class="wheel" cx="48" cy="106" r="6"/><circle class="wheel" cx="72" cy="106" r="6"/>
+      <g class="badge"><circle cx="86" cy="62" r="9" fill="var(--ok)"/><path d="M81.5 62l3 3 6-6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+      ${extra}
+    </g>
+  </svg>`;
+  const headStd = `<rect class="metal" x="36" y="20" width="48" height="36" rx="12"/><rect class="visor" x="42" y="28" width="36" height="18" rx="9"/><circle class="eye" cx="52" cy="37" r="4"/><circle class="eye" cx="68" cy="37" r="4"/>`;
+  const armL = `<rect class="metal" x="24" y="62" width="12" height="26" rx="6"/>`;
+  const armR = t => `<rect class="metal" x="84" y="62" width="12" height="26" rx="6"/>${t||""}`;
+  if(k==="fetch") return base(headStd, armL, armR(`<rect class="trim" x="84" y="86" width="18" height="14" rx="2" stroke="var(--ink)" stroke-width="1.5"/>`),
+    `<g class="fx"><path d="M100 70v12m-5-5l5 5 5-5" class="tool"/></g>`,
+    `<path d="M60 66v14m-6-6l6 6 6-6" class="tool"/>`);
+  if(k==="listen") return base(headStd + `<path d="M34 40a26 26 0 0 1 52 0" fill="none" stroke="var(--ink)" stroke-width="4"/><rect x="28" y="34" width="10" height="16" rx="4" class="trim" stroke="var(--ink)" stroke-width="1.5"/><rect x="82" y="34" width="10" height="16" rx="4" class="trim" stroke="var(--ink)" stroke-width="1.5"/>`,
+    armL, armR(), `<g class="fx"><path d="M98 38q5 4 0 8" class="tool"/></g><g class="fx b"><path d="M103 34q8 8 0 16" class="tool"/></g>`,
+    `<path d="M48 76h4M54 70v12M60 72v8M66 68v16M72 74h0" class="tool"/>`);
+  if(k==="scout") return base(`<rect class="metal" x="36" y="20" width="48" height="36" rx="12"/><rect class="visor" x="42" y="27" width="36" height="20" rx="10"/><circle class="eye" cx="60" cy="37" r="6"/>`,
+    armL, armR(`<circle cx="104" cy="58" r="10" fill="color-mix(in srgb,#7fe3ff 30%,transparent)" stroke="var(--ink)" stroke-width="3"/><line x1="97" y1="66" x2="92" y2="74" class="tool"/>`),
+    `<g class="fx"><path d="M100 44l2-5 2 5 5 2-5 2-2 5-2-5-5-2z" fill="var(--hazard)"/></g>`,
+    `<path d="M52 72l5 5 11-11" class="tool"/>`);
+  if(k==="edit") return base(headStd, armL, armR(`<g class="spin"><circle cx="102" cy="90" r="4" class="tool"/><circle cx="102" cy="76" r="4" class="tool"/><path d="M104 86l12-14M104 80l12 14" class="tool"/></g>`),
+    `<g class="fx"><rect x="16" y="54" width="8" height="12" rx="1" fill="var(--hazard)"/></g>`,
+    `<rect x="46" y="68" width="28" height="14" rx="2" fill="var(--ink)"/><path d="M50 68v14M70 68v14" stroke="var(--steel)" stroke-width="2" stroke-dasharray="2 2"/>`);
+  if(k==="post") return base(headStd, armL, armR(`<path d="M92 60l22-10-8 22-5-8z" fill="var(--panel-2)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/>`),
+    `<g class="fx"><circle cx="112" cy="46" r="2" fill="var(--hazard)"/></g><g class="fx b"><circle cx="106" cy="40" r="1.6" fill="var(--hazard)"/></g><g class="fx c"><circle cx="116" cy="38" r="1.4" fill="var(--hazard)"/></g>`,
+    `<path d="M50 80l10-14 10 14" class="tool"/><path d="M60 66v16" class="tool"/>`);
+  return base(headStd, armL, armR(`<rect x="88" y="58" width="22" height="28" rx="3" fill="var(--panel-2)" stroke="var(--ink)" stroke-width="2.5"/><rect x="94" y="55" width="10" height="6" rx="2" fill="var(--ink)"/><path d="M93 68h12M93 74h12M93 80h8" stroke="var(--steel-d)" stroke-width="2"/>`),
+    "", `<circle cx="60" cy="74" r="9" fill="var(--panel-2)" stroke="var(--ink)" stroke-width="2.5"/><path d="M60 69v5l4 3" class="tool" stroke-width="2.5"/>`);
+}
+
+function buildStations(){
+  $("#stations").innerHTML = STATIONS.map(s => `
+    <div class="st idle" id="st-${s.k}">
+      <div class="bay">${bot(s.k)}</div>
+      <div class="name">${s.name}</div>
+      <div class="role">${s.role}</div>
+      <span class="chip">Napping</span>
+      <div class="bar"><b></b></div>
+      <div class="detail"></div>
+    </div>`).join("");
+}
+
+const CREW = {fetch:["FETCH","#4f9dff"], listen:["EARS","#f6c026"], scout:["SCOUT","#35c46f"], edit:["SNIP","#ff8a3d"], post:["LAUNCH","#ff5470"], handoff:["CLIPBOARD","#9f7bff"]};
+function renderCrew(steps){
+  $("#crew").innerHTML = Object.entries(CREW).map(([k,[n,c]]) => { const v = steps[k] || {state:"idle"};
+    const txt = v.state === "idle" ? "Napping" : (v.detail || LABEL[v.state] || v.state);
+    return `<div class="m ${v.state}"><i class="sw" style="background:${c}"></i><b>${n}</b><span title="${esc(txt)}">${esc(txt)}</span></div>`; }).join("");
+}
+function renderSteps(steps, busy){
+  Factory.set(steps, busy); renderCrew(steps);
+  let any = false;
+  for(const s of STATIONS){
+    const v = steps[s.k] || {state:"idle"}, el = $("#st-"+s.k);
+    if(!el) continue;
+    if(!el.classList.contains(v.state)){ el.className = "st " + v.state; }
+    el.querySelector(".chip").textContent = LABEL[v.state] || v.state;
+    const pct = v.state === "done" ? 100 : (v.pct ?? (v.state === "working" ? 8 : 0));
+    el.querySelector(".bar b").style.width = pct + "%";
+    el.querySelector(".detail").textContent = v.detail || "";
+    if(v.state === "working") any = true;
+  }
+  $("#line").classList.toggle("running", any);
+  const p = $("#busy-pill");
+  p.classList.toggle("on", !!busy);
+  p.querySelector("span").textContent = busy === "make" ? "Making clips" : busy === "post" ? "Posting" : busy === "edit" ? "Adding caption" : busy ? "Working" : "Crew on break";
+  if(!busy) $("#make-msg").textContent = "";
+  $("#btn-make").disabled = !!busy; $("#btn-load").disabled = !!busy; $("#btn-post").disabled = !!busy;
+  document.querySelectorAll("[data-burn]").forEach(b => b.disabled = !!busy);
+}
+
+function addLog(entries){
+  const box = $("#radio"), stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+  if(entries.length) Factory.say(entries[entries.length - 1].msg);
+  for(const e of entries){
+    const d = document.createElement("div");
+    const m = e.msg;
+    const cls = /problem|failed|error|stuck/i.test(m) ? "e" : /^\s*!|warning|submit/i.test(m) ? "w" : /done|posted|ready|saved|loaded/i.test(m) ? "g" : "";
+    d.innerHTML = `<span class="t">${esc(e.t)}</span><span class="${cls}">${esc(m)}</span>`;
+    box.append(d);
+  }
+  while(box.children.length > 600) box.firstChild.remove();
+  if(stick) box.scrollTop = box.scrollHeight;
+}
+
+/* ---------- data views */
+function missingTags(caption){
+  const need = (DATA.settings.required_text || "").split(/\s+/).filter(t => /^[#@]/.test(t));
+  const low = (caption || "").toLowerCase();
+  return need.filter(t => !low.includes(t.toLowerCase()));
+}
+function deadline(c){
+  if(!c.posted_at) return null;
+  return new Date(new Date(c.posted_at).getTime() + (DATA.submit_min || 30) * 60000);
+}
+function clockHTML(c){
+  const d = deadline(c); if(!d) return `<span class="sub">-</span>`;
+  const left = Math.round((d - Date.now()) / 60000);
+  const hh = d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  if(left < 0) return `<span class="clock late">${hh} (missed)</span>`;
+  return `<span class="clock ${left <= 10 ? "soon" : ""}">${hh} (${left} min)</span>`;
+}
+function linksHTML(c){
+  return `<div class="links">${Object.entries(c.links).map(([p,u]) => /^https?:/.test(u) ? `<a class="lk" href="${esc(u)}" target="_blank" rel="noopener"><b>${PLAT[p]||p}</b>open</a>` : `<span class="lk"><b>${PLAT[p]||p}</b>${esc(u)}</span>`).join("")}</div>`;
+}
+
+function renderStats(){
+  const s = DATA.stats;
+  $("#s-made").textContent = s.made || 0; $("#s-posted").textContent = s.posted || 0;
+  $("#s-wait").textContent = s.waiting || 0; $("#s-sub").textContent = s.submitted || 0;
+  const ready = DATA.clips.filter(c => !Object.keys(c.links).length).length;
+  $("#nav-ready").hidden = !ready; $("#nav-ready").textContent = ready;
+  $("#nav-wait").hidden = !s.waiting; $("#nav-wait").textContent = s.waiting;
+  $("#camp-label").textContent = DATA.settings.campaign ? "Campaign: " + DATA.settings.campaign : "";
+}
+
+function renderHandoff(){
+  const waiting = DATA.clips.filter(c => Object.keys(c.links).length && !c.submitted);
+  const box = $("#handoff");
+  if(!waiting.length){
+    box.innerHTML = `<div class="empty st idle" style="padding:24px 10px">${bot("handoff")}<div>Nothing to submit right now. Posted links land here with a 30-minute timer.</div></div>`;
+    return;
+  }
+  box.innerHTML = waiting.map(c => `
+    <div class="item"><div><div class="ttl">${esc(c.title || c.file)}</div>${linksHTML(c)}</div>
+    <div style="display:grid;gap:6px;justify-items:end">${clockHTML(c)}
+      <div class="row"><button class="btn sm" data-copy="${esc(c.id)}">Copy links</button><button class="btn sm" data-sub="${esc(c.id)}">Mark submitted</button></div></div></div>`).join("");
+}
+
+function renderClips(){
+  const box = $("#cards");
+  if(box.contains(document.activeElement) && /TEXTAREA|INPUT/.test(document.activeElement.tagName) && document.activeElement.type !== "checkbox") return;
+  let list = DATA.clips;
+  if(filter === "ready") list = list.filter(c => !Object.keys(c.links).length);
+  if(filter === "posted") list = list.filter(c => Object.keys(c.links).length);
+  if(!list.length){
+    box.innerHTML = `<div class="empty st idle" style="grid-column:1/-1">${bot("edit")}<div>${filter === "ready" ? "No clips waiting. Start the line on the Floor to make some." : "Nothing here yet."}</div></div>`;
+    return;
+  }
+  box.innerHTML = list.map(c => {
+    const miss = missingTags(c.caption), posted = Object.keys(c.links).length;
+    return `<article class="panel card" data-id="${esc(c.id)}">
+      <div class="vid"><video src="/media/${encodeURI(c.id)}?t=${TOKEN}&v=${c.v}" controls preload="metadata" playsinline></video>
+        ${posted ? `<span class="chip state" style="background:var(--panel-2)">${c.submitted ? "Submitted" : "Posted"}</span>` :
+          `<label class="sel"><input type="checkbox" ${selected.has(c.id) ? "checked" : ""} data-pick="${esc(c.id)}"> Post this</label>`}</div>
+      <div class="bd">
+        <input type="text" class="ttl" value="${esc(c.title)}" data-title="${esc(c.id)}" aria-label="Title">
+        ${!posted && c.can_hook ? `<div class="hookbox"><label for="hk-${esc(c.v)}-${esc(c.file)}">On-screen caption</label>
+          <div class="inline"><input type="text" id="hk-${esc(c.v)}-${esc(c.file)}" data-hook="${esc(c.id)}" maxlength="140" value="${esc(c.hook)}" placeholder="they are having a little too much fun with this challenge"><button class="btn sm" data-burn="${esc(c.id)}">Burn in</button></div>
+          <span class="hint">Shown in a white box over the middle of the video.</span></div>` : ""}
+        <label class="lbl">Post caption</label>
+        <textarea data-cap="${esc(c.id)}" aria-label="Post caption">${esc(c.caption)}</textarea>
+        ${miss.length ? `<div class="miss">Missing ${esc(miss.join(" "))}</div>` : ""}
+        <div class="row" style="align-items:center"><button class="btn sm" data-save="${esc(c.id)}">Save caption</button><span class="meta">${esc(c.campaign)} · ${esc(c.mb)} MB</span></div>
+        ${posted ? linksHTML(c) : ""}
+      </div></article>`;
+  }).join("");
+  updateDock();
+}
+
+function updateDock(){
+  const n = selected.size;
+  $("#dock").hidden = !n;
+  $("#dock-n").textContent = `${n} selected`;
+  $("#dock-plats").textContent = "to " + (DATA.settings.up_platforms || []).map(p => PLAT[p]).join(", ");
+}
+
+function renderTracker(){
+  const rows = DATA.clips.filter(c => Object.keys(c.links).length);
+  $("#trows").innerHTML = rows.length ? rows.map(c => `<tr>
+    <td><div class="ttl">${esc(c.title || c.file)}</div><div class="sub">${esc(c.file)}</div></td>
+    <td>${esc(c.campaign)}</td>
+    <td>${c.posted_at ? new Date(c.posted_at).toLocaleString([], {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"}) : "-"}</td>
+    <td>${c.submitted ? `<span class="sub">-</span>` : clockHTML(c)}</td>
+    <td>${linksHTML(c)}</td>
+    <td><label class="toggle"><input type="checkbox" data-subtoggle="${esc(c.id)}" ${c.submitted ? "checked" : ""}> ${c.submitted ? "Yes" : "No"}</label></td>
+  </tr>`).join("") : `<tr><td colspan="6"><div class="empty">Posted clips show up here.</div></td></tr>`;
+}
+
+function renderCampaigns(){
+  const box = $("#camps");
+  if(!DATA.campaigns.length){ box.innerHTML = `<div class="empty st idle" style="grid-column:1/-1">${bot("scout")}<div>No campaigns yet. Paste a requirements link on the Floor and click Load rules.</div></div>`; return; }
+  box.innerHTML = DATA.campaigns.map(c => `<article class="panel"><div class="hd"><h2>${esc(c.name)}</h2><span class="grow"></span><span class="sub">${c.clips} clip${c.clips === 1 ? "" : "s"}</span></div>
+    <div class="bd camp">
+      ${c.source ? `<a href="${esc(/^https?:/.test(c.source) ? c.source : "https://" + c.source)}" target="_blank" rel="noopener">${esc(c.source)}</a>` : ""}
+      <div><b>Caption tags:</b> <span class="tags">${esc(c.tags || "none found")}</span></div>
+      ${c.warnings.length ? `<div class="note"><b>Must-know</b><ul>${c.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}
+      <div class="row"><button class="btn sm" data-usecamp="${esc(c.source)}">Use for next batch</button></div>
+    </div></article>`).join("");
+}
+
+function fillForms(){
+  const s = DATA.settings;
+  const set = (id, v) => { const el = $(id); if(el && document.activeElement !== el && v !== undefined && v !== null) el.value = v; };
+  set("#f-req", s.req_url); set("#f-campaign", s.campaign); set("#f-tags", s.required_text); set("#f-rules", s.rules);
+  set("#f-num", s.num_clips || 5); set("#f-min", s.min_len || 20); set("#f-max", s.max_len || 60);
+  set("#s-prof", s.up_profile); set("#s-layout", s.layout || "Auto"); set("#s-model", s.model || "base");
+  $("#s-upkey-h").textContent = s.has_up_key ? "Saved. Paste a new key only to replace it." : "Find it in your Upload-Post dashboard.";
+  $("#s-upkey").placeholder = s.has_up_key ? "•••••••• saved" : "";
+  $("#s-ckey").placeholder = s.has_api_key ? "•••••••• saved" : "sk-ant-...";
+  const plats = new Set(s.up_platforms || []);
+  $("#s-plats").innerHTML = Object.entries(PLAT).map(([k,n]) => `<label class="toggle"><input type="checkbox" value="${k}" ${plats.has(k) ? "checked" : ""}> ${n}</label>`).join("");
+}
+
+async function loadData(){
+  DATA = await api("/api/data");
+  renderStats(); renderHandoff(); renderClips(); renderTracker(); renderCampaigns();
+  if(!fillForms.done){ fillForms(); fillForms.done = true; }
+}
+
+/* ---------- polling */
+async function poll(){
+  try{
+    const st = await api("/api/state?since=" + seq);
+    if(st.log.length){ addLog(st.log); seq = st.seq; }
+    renderSteps(st.steps, st.busy);
+    if(st.version !== version || (lastBusy && !st.busy)){ version = st.version; await loadData(); }
+    lastBusy = st.busy;
+    $("#foot").textContent = "Keep this window open while the robots work.";
+  }catch(e){ $("#foot").textContent = "Lost contact with the crew. Close this window and start Clip Maker again."; }
+}
+setInterval(poll, 1000);
+setInterval(() => { renderHandoff(); if(!$("#page-tracker").hidden) renderTracker(); }, 30000);
+
+/* ---------- actions */
+document.querySelectorAll(".nav").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".nav").forEach(n => n.removeAttribute("aria-current"));
+  b.setAttribute("aria-current", "page");
+  document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "page-" + b.dataset.page);
+  $("#main").scrollTop = 0;
+});
+let view = "cards";
+function setView(v){
+  view = v === "factory" ? "factory" : "cards";
+  $("#line").hidden = view !== "cards"; $("#factory").hidden = view !== "factory";
+  document.querySelectorAll(".viewtoggle button").forEach(b => b.setAttribute("aria-pressed", b.dataset.view === view));
+  if(view === "factory" && !$("#page-floor").hidden) Factory.start(); else Factory.stop();
+  try{ localStorage.setItem("clipmaker-view", view); }catch{}
+}
+document.querySelector(".viewtoggle").onclick = e => { const b = e.target.closest("button"); if(b) setView(b.dataset.view); };
+document.querySelectorAll(".nav").forEach(b => b.addEventListener("click", () => { if(b.dataset.page === "floor" && view === "factory") Factory.start(); else Factory.stop(); }));
+function go(page){ document.querySelector(`.nav[data-page="${page}"]`).click(); }
+
+$("#btn-load").onclick = async () => {
+  const url = $("#f-req").value.trim(); if(!url){ toast("Paste the campaign's requirements link first"); return; }
+  $("#btn-load").disabled = true; set("scout","working","Reading the rules...");
+  try{
+    const r = await api("/api/requirements", {url});
+    DATA.settings = {...DATA.settings, ...r};
+    ["#f-campaign","#f-tags","#f-rules","#f-min","#f-max"].forEach(id => $(id).value = "");
+    fillForms(); document.querySelector("details.more").open = true;
+    toast("Rules loaded for " + r.campaign);
+  }catch(e){ toast(e.message); }
+  $("#btn-load").disabled = false; await api("/api/reset-steps", {}); loadData();
+};
+function set(k, state, detail){ const el = $("#st-"+k); if(el){ el.className = "st " + state; el.querySelector(".detail").textContent = detail || ""; el.querySelector(".chip").textContent = LABEL[state]; } }
+
+$("#btn-make").onclick = async () => {
+  const body = {
+    url: $("#f-url").value.trim(), req_url: $("#f-req").value.trim(), campaign: $("#f-campaign").value.trim(),
+    required_text: $("#f-tags").value.trim(), rules: $("#f-rules").value.trim(),
+    start: $("#f-start").value.trim(), end: $("#f-end").value.trim(),
+    num_clips: $("#f-num").value || "5", min_len: $("#f-min").value || "20", max_len: $("#f-max").value || "60",
+  };
+  if(!body.url){ toast("Paste a video link first"); $("#f-url").focus(); return; }
+  try{ await api("/api/make", body); $("#make-msg").textContent = "The line is running. Watch the robots."; }
+  catch(e){ toast(e.message); }
+};
+
+$("#clip-filters").onclick = e => {
+  const b = e.target.closest("button"); if(!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll("#clip-filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  renderClips();
+};
+$("#btn-open-out").onclick = () => api("/api/open", {what:"output"}).catch(e => toast(e.message));
+
+$("#cards").addEventListener("change", e => {
+  const id = e.target.dataset.pick; if(!id) return;
+  e.target.checked ? selected.add(id) : selected.delete(id); updateDock();
+});
+$("#cards").addEventListener("click", async e => {
+  const burn = e.target.dataset.burn;
+  if(burn){
+    const hook = e.target.closest(".hookbox").querySelector("[data-hook]").value.trim();
+    try{ await api("/api/hook", {clip:burn, hook}); toast(hook ? "Snip is adding your caption" : "Snip is removing the caption"); document.activeElement.blur(); }
+    catch(err){ toast(err.message); }
+    return;
+  }
+  const id = e.target.dataset.save; if(!id) return;
+  const card = e.target.closest(".card");
+  try{
+    await api("/api/caption", {clip:id, title: card.querySelector("[data-title]").value, caption: card.querySelector("[data-cap]").value});
+    toast("Caption saved"); document.activeElement.blur(); loadData();
+  }catch(err){ toast(err.message); }
+});
+$("#btn-clear").onclick = () => { selected.clear(); renderClips(); };
+
+$("#btn-post").onclick = () => {
+  const s = DATA.settings;
+  if(!s.has_up_key || !s.up_profile || !(s.up_platforms || []).length){ toast("Set up posting in Settings first"); go("settings"); return; }
+  const clips = DATA.clips.filter(c => selected.has(c.id));
+  const probs = clips.flatMap(c => { const m = missingTags(c.caption); return [!c.caption ? `${c.title || c.file} has no caption` : null, m.length ? `${c.title || c.file} is missing ${m.join(" ")}` : null].filter(Boolean); });
+  const root = $("#modal-root");
+  root.innerHTML = `<div class="scrim"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mh">
+    <div class="hd"><h2 id="mh">Post ${clips.length} clip${clips.length === 1 ? "" : "s"} publicly?</h2></div>
+    <div class="bd">
+      <div>To <b>${(s.up_platforms || []).map(p => PLAT[p]).join(", ")}</b> through your Upload-Post profile <b>${esc(s.up_profile)}</b>.</div>
+      ${clips.map(c => `<div class="q"><b>${esc(c.title || c.file)}</b><div class="sub">${esc(c.caption || "(no caption)")}</div></div>`).join("")}
+      ${probs.length ? `<div class="note"><b>Check these first</b><ul>${probs.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>` : ""}
+      <div class="note info">Submit each link to the campaign within 30 minutes. They'll appear under "To submit" on the Floor.</div>
+    </div>
+    <div class="ft"><button class="btn" id="m-cancel">Cancel</button><button class="btn go" id="m-ok">Post publicly</button></div></div></div>`;
+  $("#m-cancel").onclick = () => root.innerHTML = "";
+  $("#m-ok").onclick = async () => {
+    root.innerHTML = "";
+    try{ await api("/api/post", {clips:[...selected]}); selected.clear(); updateDock(); go("floor"); toast("Launch robot is on it"); }
+    catch(e){ toast(e.message); }
+  };
+  $("#m-ok").focus();
+};
+
+document.addEventListener("click", async e => {
+  const c = e.target.dataset.copy, sub = e.target.dataset.sub, use = e.target.dataset.usecamp;
+  if(c){
+    const clip = DATA.clips.find(x => x.id === c);
+    const text = Object.entries(clip.links).map(([p,u]) => `${PLAT[p]||p}: ${u}`).join("\n");
+    try{ await navigator.clipboard.writeText(text); toast("Links copied"); }catch{ toast("Couldn't copy. Open the Tracker instead."); }
+  }
+  if(sub){ try{ await api("/api/submitted", {clip:sub, value:true}); toast("Marked submitted"); loadData(); }catch(err){ toast(err.message); } }
+  if(use !== undefined && use !== null && e.target.matches("[data-usecamp]")){ $("#f-req").value = use; go("floor"); $("#btn-load").click(); }
+});
+document.addEventListener("change", async e => {
+  const id = e.target.dataset.subtoggle; if(!id) return;
+  try{ await api("/api/submitted", {clip:id, value:e.target.checked}); loadData(); }catch(err){ toast(err.message); }
+});
+
+$("#btn-save").onclick = async () => {
+  const body = {
+    up_key: $("#s-upkey").value.trim(), up_profile: $("#s-prof").value.trim(),
+    up_platforms: [...document.querySelectorAll("#s-plats input:checked")].map(i => i.value),
+    api_key: $("#s-ckey").value.trim(), layout: $("#s-layout").value, model: $("#s-model").value,
+  };
+  try{
+    const r = await api("/api/settings", body);
+    DATA.settings = r.settings; $("#s-upkey").value = ""; $("#s-ckey").value = ""; fillForms();
+    $("#save-msg").textContent = "Saved."; setTimeout(() => $("#save-msg").textContent = "", 2500);
+  }catch(e){ toast(e.message); }
+};
+
+buildStations(); Factory.init($("#factory-canvas"));
+try{ setView(localStorage.getItem("clipmaker-view") || "cards"); }catch{ setView("cards"); }
+poll();
+</script>
+</body>
+</html>

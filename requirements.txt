@@ -1,0 +1,6 @@
+yt-dlp[default]
+faster-whisper
+av<16
+opencv-python>=4.8,<5
+numpy
+anthropic

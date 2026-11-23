@@ -1,0 +1,15 @@
+# Local environment and generated media
+venv/
+output/
+work/
+__pycache__/
+*.pyc
+# Logs
+app_log.txt
+install_log.txt
+last_error.txt
+*.log
+# Personal settings (holds your API keys)
+settings.json
+.port
+.env

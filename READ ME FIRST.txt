@@ -1,0 +1,93 @@
+CLIP MAKER - for Content Rewards clipping (contentrewards.com)
+==============================================
+
+WHAT IT DOES
+Paste a video link -> it downloads the video, writes captions, picks the best
+moments, and saves ready-to-post vertical (9:16) clips with word-by-word
+captions. Each clip gets a .txt file with a caption to copy, and every clip
+is added to output\tracker.csv so you can track posting and submissions.
+
+
+ONE-TIME SETUP (about 15 minutes, Windows 10/11 only)
+1. Right-click the zip file and choose "Extract All...". Put the folder
+   somewhere easy, like Documents\ClipMaker. Don't run anything from
+   inside the zip.
+2. Open the extracted folder and double-click "Install (run once).bat".
+   - If Windows says "Windows protected your PC", click "More info",
+     then "Run anyway". (It shows this for any file from the internet.)
+   - It installs everything it needs, including Python if you don't have it.
+     It takes 5-15 minutes. Wait for "All set!".
+3. Restart your computer.
+4. Double-click "Start Clip Maker.bat" whenever you want to clip.
+
+
+ACCOUNTS YOU'LL NEED
+- contentrewards.com - to join campaigns and submit clips
+  (connect your social accounts there so you get paid)
+- The social accounts you post from: YouTube, TikTok,
+  Instagram (switch it to a Professional/Creator account), X
+- upload-post.com - only if you want the one-click "Post clips" button
+- console.anthropic.com - optional Claude API key for smarter clip picking
+
+
+USING THE APP
+Double-click "Start Clip Maker.bat" (or the "Clip Maker" shortcut it puts on
+your desktop). The app opens in its own window with five pages:
+
+- FLOOR: the robot crew. Paste the campaign's requirements link and click
+  "Load rules", paste the video or stream link, optionally set "Only clip
+  from / to" for long streams, then "Start the line". Each robot lights up
+  as it works: Fetch downloads, Ears writes captions, Scout finds moments (spread across the video, skipping
+  intros, outros and self-promo),
+  Snip cuts 9:16 clips, Launch posts, Clipboard holds links to submit.
+  Click "Factory" at the top of the Floor to watch the crew as a pixel-art
+  factory instead (click "Cards" to switch back).
+- CLIPS: watch every clip. Type a funny "On-screen caption" and click
+  Burn in to put it over the video in a white box (with a Claude key one is
+  written for you). Fix the post caption (add a hashtag for each creator in
+  the clip if the campaign wants that) and click Save caption.
+  Tick "Post this" on the good ones, then "Post selected".
+- TRACKER: every posted clip, its links, the 30-minute submit deadline,
+  and a Submitted checkbox.
+- CAMPAIGNS: the rules you've loaded, with the must-know warnings.
+- SETTINGS: Upload-Post key and profile (for posting), optional Claude key,
+  layout and caption accuracy. Keys stay on this computer.
+
+The first run is slow (it downloads the speech model). Closing the window
+stops the app about a minute later; wait until the robots finish first.
+
+POSTING SETUP (one time)
+- Make an account at upload-post.com, create a profile, and connect your
+  YouTube / TikTok / Instagram / X accounts to it.
+  (Free plan: 10 posts a month, no TikTok.)
+- Paste the API key and profile name into Settings. Instagram must be a
+  Professional/Creator account.
+
+
+SUBMITTING
+- On contentrewards.com, submit each post link (and the clip file if asked).
+- Many campaigns require submitting within 30 minutes of posting, so submit
+  right after each post goes live.
+- Mark "Submitted" = Y in the tracker.
+- The Floor's "To submit" box and the Tracker show the links and deadlines.
+  Tick Submitted once done.
+
+
+OPTIONAL: SMARTER CLIP PICKING
+Without a key it uses a free method (loud, fast-talking moments).
+With a Claude API key it reads the transcript and picks real highlights,
+plus writes titles and captions. Get a key at https://console.anthropic.com
+(pay-as-you-go), paste it into the window once, and it's saved.
+
+
+IF SOMETHING BREAKS
+- "Download failed": double-click "Update downloader.bat" and try again.
+- Setup failed: send install_log.txt to whoever gave you this.
+- Anything else: open last_error.txt or app_log.txt and paste it to Claude.
+- Layout looks wrong? Change "Layout": Follow face for podcasts/talking,
+  Blurred background for gameplay.
+
+
+STAY ON THE RIGHT SIDE OF THE RULES
+Only clip creators whose campaign allows it, follow each campaign's rules,
+and don't use bots or bought views - campaigns review clips and can reject them.
